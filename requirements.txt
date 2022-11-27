@@ -1,0 +1,7 @@
+datasets==2.7.1
+Pillow==9.3.0
+torch==1.13.0
+torchinfo==1.7.1
+torchvision==0.14.0
+tqdm==4.64.1
+transformers==4.24.0
