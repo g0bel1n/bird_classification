@@ -28,7 +28,7 @@ parser.add_argument(
 parser.add_argument(
     "--epochs",
     type=int,
-    default=10,
+    default=4,
     metavar="N",
     help="number of epochs to train (default: 10)",
 )
@@ -75,11 +75,19 @@ model = MyConvNext.from_pretrained(
     ignore_mismatched_sizes=True,
 )
 
+# model.convnext.embeddings.requires_grad = False
 
+# params = (
+#     *model.convnext.encoder.parameters(),
+#     *model.convnext.layernorm.parameters(),
+#     *model.head.parameters(),
+# )
 print(summary(model))
 
 
 optimizer = torch.optim.AdamW(model.parameters(), max_lr, weight_decay=0)
+
+# optimizer = torch.optim.SGD(params, max_lr)
 
 
 num_training_steps = args.epochs * len(train_loader)
@@ -91,7 +99,7 @@ scheduler = get_scheduler(
 )
 
 
-criterion = torch.nn.CrossEntropyLoss(label_smoothing=.2)
+criterion = torch.nn.CrossEntropyLoss(label_smoothing=0.2)
 criterion.cuda()
 
 if use_cuda:
@@ -139,9 +147,7 @@ def validation():
         batch = {k: v.cuda() for k, v in batch.items()}
 
         output = model(**batch)
-        validation_loss = criterion(
-            output.view(-1, n_labels), batch["labels"].view(-1)
-        )
+        validation_loss = criterion(output.view(-1, n_labels), batch["labels"].view(-1))
         pred = output.data.max(1, keepdim=True)[1]
         correct += pred.eq(batch["labels"].data.view_as(pred)).cpu().sum()
 
